@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+    branches: [ '**' ]
+    paths-ignore:
+      - '.gitignore'
+      - 'CHANGELOG.md'
+      - 'README.md'
+
+jobs:
+  testing:
+    strategy:
+      matrix:
+        os: [ windows, macos, ubuntu ]
+    runs-on: ${{ matrix.os }}-latest
+    concurrency:
+      group: build-${{ github.workflow }}-${{ matrix.os }}-${{ github.event.number || github.ref }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: ./dsl
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v2
+      - name: Grant execution permissions
+        run: chmod +x gradlew
+      - name: Run tests
+        run: ./gradlew runAllTests
